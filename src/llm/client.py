@@ -1,51 +1,72 @@
-"""LLM client for interacting with language models"""
-import os
-from typing import Optional
+"""LLM client for interacting with Groq-hosted models."""
+
+import json
+from typing import Any, Dict
+
+from groq import APIError, Groq
+
+from src.core.config import GROQ_API_KEY, LLM_MAX_TOKENS, LLM_MODEL, LLM_TEMPERATURE
+
+SYSTEM_MESSAGE = (
+    "You are a senior pharma market intelligence analyst. " "Always respond with valid JSON only."
+)
 
 
 class LLMClient:
-    """Client for LLM operations"""
-    
-    def __init__(self, api_key: Optional[str] = None, model: str = "gpt-4"):
-        """
-        Initialize LLM client
-        
-        Args:
-            api_key: OpenAI API key (defaults to OPENAI_API_KEY env var)
-            model: Model name to use (default: gpt-4)
-        """
-        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
+    """Client for LLM operations against the Groq API."""
+
+    def __init__(
+        self,
+        api_key: str | None = None,
+        model: str = LLM_MODEL,
+        temperature: float = LLM_TEMPERATURE,
+        max_tokens: int = LLM_MAX_TOKENS,
+        system_message: str = SYSTEM_MESSAGE,
+    ) -> None:
+        self.api_key = api_key or GROQ_API_KEY
         self.model = model
-        
+        self.temperature = temperature
+        self.max_tokens = max_tokens
+        self.system_message = system_message
+
+    def _client(self) -> Groq:
         if not self.api_key:
-            raise ValueError("OPENAI_API_KEY environment variable not set")
-    
-    def run(self, prompt: str, temperature: float = 0.7, max_tokens: int = 2000) -> str:
-        """
-        Run LLM with given prompt
-        
-        Args:
-            prompt: The prompt to send to LLM
-            temperature: Sampling temperature (0-1)
-            max_tokens: Maximum tokens in response
-            
-        Returns:
-            LLM response text
-        """
+            raise ValueError("GROQ_API_KEY environment variable not set")
+        return Groq(api_key=self.api_key)
+
+    def run(self, prompt: str) -> str:
+        """Send a prompt and return the raw text response."""
+        response = self._complete(prompt, json_mode=False)
+        content = response.choices[0].message.content
+        if not content:
+            raise RuntimeError("LLM returned an empty response")
+        return content
+
+    def run_json(self, prompt: str) -> Dict[str, Any]:
+        """Send a prompt and parse the response as JSON (Groq JSON mode)."""
+        response = self._complete(prompt, json_mode=True)
+        content = response.choices[0].message.content
+        if not content:
+            raise RuntimeError("LLM returned an empty response")
         try:
-            from langchain.llms import OpenAI
-            
-            llm = OpenAI(
-                api_key=self.api_key,
-                model_name=self.model,
-                temperature=temperature,
-                max_tokens=max_tokens
-            )
-            
-            response = llm(prompt)
-            return response
-            
-        except ImportError:
-            raise ImportError("langchain package required. Install with: pip install langchain openai")
-        except Exception as e:
-            raise RuntimeError(f"LLM request failed: {str(e)}")
+            return json.loads(content)
+        except (json.JSONDecodeError, TypeError) as exc:
+            raise RuntimeError(f"LLM returned invalid JSON: {content!r}") from exc
+
+    def _complete(self, prompt: str, *, json_mode: bool):
+        """Call the Groq chat completions API, converting API failures to RuntimeError."""
+        kwargs: Dict[str, Any] = {
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": self.system_message},
+                {"role": "user", "content": prompt},
+            ],
+            "temperature": self.temperature,
+            "max_tokens": self.max_tokens,
+        }
+        if json_mode:
+            kwargs["response_format"] = {"type": "json_object"}
+        try:
+            return self._client().chat.completions.create(**kwargs)
+        except APIError as exc:
+            raise RuntimeError(f"Groq API error: {exc}") from exc

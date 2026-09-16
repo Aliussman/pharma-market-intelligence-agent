@@ -13,7 +13,7 @@ pip install -r requirements-dev.txt
 ### Running
 ```bash
 # Terminal 1: Start API
-python main.py
+python run.py
 
 # Terminal 2: Start UI
 streamlit run src/ui/app.py
@@ -29,8 +29,8 @@ streamlit run src/ui/app.py
 ```bash
 heroku login
 heroku create your-app-name
-heroku config:set OPENAI_API_KEY=your_key_here
-git push heroku refactor/project-restructure:main
+heroku config:set GROQ_API_KEY=your_key_here
+git push heroku main
 ```
 
 ## Docker Deployment
@@ -38,12 +38,13 @@ git push heroku refactor/project-restructure:main
 ### Build Image
 ```bash
 docker build -t pharma-agent .
-docker run -p 8000:8000 -e OPENAI_API_KEY=your_key pharma-agent
+docker run -p 8000:8000 -e GROQ_API_KEY=your_key pharma-agent
 ```
 
 ## Environment Variables
 
-- `OPENAI_API_KEY`: Your OpenAI API key (required)
+- `GROQ_API_KEY`: Your Groq API key (required)
+- `LLM_MODEL`: Model to use (default: `llama-3.1-8b-instant`)
 - `API_HOST`: API host (default: 127.0.0.1)
 - `API_PORT`: API port (default: 8000)
 - `ENVIRONMENT`: development/production (default: development)

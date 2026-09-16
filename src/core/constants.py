@@ -17,8 +17,8 @@ FINANCE_KEYWORDS = [
 ]
 
 # LLM Defaults
-DEFAULT_TEMPERATURE = 0.7
-DEFAULT_MAX_TOKENS = 2000
+DEFAULT_TEMPERATURE = 0.2
+DEFAULT_MAX_TOKENS = 1500
 
 # API Response Keys
 ANALYSIS_SECTIONS = [
@@ -27,3 +27,21 @@ ANALYSIS_SECTIONS = [
     "pipeline_regulatory",
     "strategic_insights",
 ]
+
+# Market Brief Queries (used with Tavily when configured)
+MARKET_BRIEF_QUERIES = [
+    "pharmaceutical industry market news today",
+    "big pharma pipeline regulatory updates",
+    "pharma earnings and financial results",
+]
+
+# Curated pharma news feeds (RSS fallback when no Tavily key)
+PHARMA_RSS_FEEDS = [
+    ("Fierce Pharma", "https://www.fiercepharma.com/rss/xml"),
+    ("Fierce Biotech", "https://www.fiercebiotech.com/rss/xml"),
+    ("Endpoints News", "https://endpts.com/feed/"),
+]
+
+# Tavily API
+TAVILY_SEARCH_URL = "https://api.tavily.com/search"
+TAVILY_EXTRACT_URL = "https://api.tavily.com/extract"

@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+gunicorn
+groq
+python-dotenv
+pydantic
+fpdf2
+streamlit
+requests
+httpx
+feedparser
