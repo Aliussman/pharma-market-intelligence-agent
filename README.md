@@ -44,6 +44,7 @@ pharma-market-intelligence-agent/
 ├── frontend/             # Next.js web interface
 ├── tests/                # Unit tests (pytest)
 ├── docs/                 # Documentation
+├── Procfile              # Platform.sh / Heroku entry point
 ├── run.py                # API entry point
 ├── requirements.txt      # Production dependencies
 ├── requirements-dev.txt  # Development dependencies
@@ -56,6 +57,7 @@ pharma-market-intelligence-agent/
 ### Prerequisites
 
 - Python 3.10+
+- Node.js 20+ (for the Next.js frontend)
 - A [Groq](https://groq.com) API key
 
 ### Installation
